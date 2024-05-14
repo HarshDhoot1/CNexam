@@ -1,0 +1,107 @@
+#include <stdio.h>
+#include <math.h>
+
+int main() {
+    int Databits, c[30], d, Paritybits = 0, d1, err[10] = {0};
+
+    printf("Enter the Number of Data Bits: ");
+    scanf("%d", &Databits);
+
+    while (Databits + Paritybits + 1 > pow(2, Paritybits)) {
+        Paritybits++;
+    }
+
+    printf("Number of parity bits to be added: %d\nTotal Bits (data + parity bits): %d\n", Paritybits, Databits + Paritybits);
+    printf("Enter the Data Bits One by One:\n");
+
+    for (int i = 1; i <= Databits; ++i)
+        scanf("%d", &c[i]);
+
+    printf("\nData bits entered: ");
+    for (int i = 1; i <= Databits; ++i)
+        printf("%d ", c[i]);
+
+    int data[Databits + Paritybits], res[Databits + Paritybits];
+    d = 0;
+    d1 = 1;
+
+    // Data bits and parity bits
+    for (int i = 1; i <= Databits + Paritybits; ++i) {
+        if ((i & (i - 1)) == 0) {
+            data[i] = 0;
+        } else {
+            data[i] = c[d1];
+            ++d1;
+        }
+    }
+    d1 = 0;
+
+    // Parity Bit Calculation
+    for (int i = 1; i <= Databits + Paritybits; i *= 2) {
+        ++d1;
+        int parity = 0;
+        for (int j = i; j <= Databits + Paritybits; ++j) {
+            if ((j & i) != 0) {
+                parity ^= data[j];
+            }
+        }
+        data[i] = parity;
+    }
+
+    printf("\nHamming codeword bits for even parity are: ");
+    for (int i = 1; i <= Databits + Paritybits; ++i)
+        printf("%d ", data[i]);
+
+    // Error Detection
+    printf("\nEnter the message received\nEnter the Data Bits One by One:\n");
+
+    for (int i = 1; i <= Databits + Paritybits; ++i)
+        scanf("%d", &res[i]);
+
+    d1 = 0;
+    int ec = 0;
+
+    // Parity Bit Calculation
+    for (int i = 1; i <= Databits + Paritybits; i *= 2) {
+        ++d1;
+        int parity = 0;
+        for (int j = i; j <= Databits + Paritybits; ++j) {
+            if ((j & i) != 0) {
+                parity ^= res[j];
+            }
+        }
+        if (parity % 2 == 0) // Even Parity
+        {
+            err[ec] = 0;
+            ec++;
+        } else {
+            err[ec] = 1;
+            ec++;
+        }
+    }
+
+    int flag = 1;
+    for (int i = Paritybits - 1; i >= 0; i--) {
+        if (err[i] == 1) {
+            flag = 0;
+            break;
+        }
+    }
+
+    if (flag == 0) {
+        int pos = 0;
+        for (int i = Paritybits - 1; i >= 0; i--) {
+            if (err[i] == 1)
+                pos += pow(2, i);
+        }
+        printf("\nPosition of error: %d", pos);
+        res[pos] = !res[pos];
+        printf("\nAfter correction: ");
+        for (int i = 1; i <= Databits + Paritybits; i++)
+            printf("%d ", res[i]);
+    } else {
+        printf("No Error detected.");
+    }
+
+    return 0;
+}
