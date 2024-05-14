@@ -1,0 +1,95 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define BARKER_LENGTH 11  // Length of Barker code
+#define NUM_CHANNELS 5     // Number of frequency channels
+
+// Barker codes for spreading
+int data_sequence[BARKER_LENGTH] = {1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0};  // Sequence for 1
+int complement_sequence[BARKER_LENGTH] = {0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1};  // Sequence for 0
+
+// Function to generate random data for testing
+void generateRandomData(int data[], int length) {
+    srand(time(NULL));
+    for (int i = 0; i < length; i++) {
+        data[i] = rand() % 2; // Generate random 0 or 1
+    }
+}
+
+// Function to calculate CRC (Cyclic Redundancy Check)
+int calculateCRC(int data[], int length) {
+    int crc = 0;
+    for (int i = 0; i < length; i++) {
+        crc ^= data[i] << (length - i - 1); // XOR operation
+    }
+    return crc;
+}
+
+int main() {
+    int data_length;
+    printf("Enter the length of the data: ");
+    scanf("%d", &data_length);
+    
+    int data[data_length];
+    
+    // Generate or input data
+    printf("Enter 0s and 1s for the data:\n");
+    for (int i = 0; i < data_length; i++) {
+        scanf("%d", &data[i]);
+    }
+
+    // Spread the data using appropriate sequence (DSSS)
+    int spread_data[data_length * BARKER_LENGTH];
+    for (int i = 0; i < data_length; i++) {
+        if (data[i] == 1) {
+            // Use data_sequence for 1
+            for (int j = 0; j < BARKER_LENGTH; j++) {
+                spread_data[i * BARKER_LENGTH + j] = data_sequence[j];
+            }
+        } else {
+            // Use complement_sequence for 0
+            for (int j = 0; j < BARKER_LENGTH; j++) {
+                spread_data[i * BARKER_LENGTH + j] = complement_sequence[j];
+            }
+        }
+    }
+    
+    // Calculate CRC
+    int crc = calculateCRC(data, data_length);
+
+    // Print the Original data
+    printf("\nOriginal data: ");
+    for (int i = 0; i < data_length; i++) {
+        printf("%d ", data[i]);
+    }
+    printf("\n");
+    
+    // Print the spreading code
+    printf("Spreading code (Barker code): ");
+    for (int i = 0; i < BARKER_LENGTH; i++) {
+        printf("%d ", data_sequence[i]);
+    }
+    printf("\n");    
+    
+    // Print the spread data
+    printf("Spread data: ");
+    for (int i = 0; i < data_length * BARKER_LENGTH; i++) {
+        printf("%d ", spread_data[i]);
+    }
+    printf("\n");
+
+    // Print CRC
+    printf("CRC: %d\n", crc);
+
+    // Frequency Hopping Spread Spectrum (FHSS)
+    srand(time(NULL));
+    printf("Frequency hopping sequence: ");
+    for (int i = 0; i < data_length; i++) {
+        int channel = rand() % NUM_CHANNELS; // Randomly select a frequency channel
+        printf("%d ", channel);
+    }
+    printf("\n");
+
+    return 0;
+}
